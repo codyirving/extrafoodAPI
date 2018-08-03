@@ -7,59 +7,8 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
 const { FoodListings } = require('../models/foodlisting_model');
-// const { Contact } = require('../models/contact_model');
 
-// const c1 = new Contact({"nameFirst":"Cody", "nameLast":"Farmer", "phoneNumber":"619-555-1234","email":"cody@garden52.codyi.mobi","address":"Cody St. San Diego, Ca 92117"});
-// const listing1 = new FoodListings({
-//     "datePosted": undefined,
-//     "dateAvailable": "12-12-2018",
-//     "itemDescription": "5 Tomatoes, and 2 bell peppers",
-//     "quantity": "1",
-//     "pickupLocation": "My House",
-//     "selfPickup": "false",
-//     "curbsidePickup":"false",
-//     "comeToDoor": "true",
-//     "meetUpAtLocation": "false",
-//     "willDropOff": "false",
-//     "availableNow": "true",
-//     "listerContact": c1
-// });
-// const c2 = new Contact({"nameFirst":"Cody", "nameLast":"Gardener", "phoneNumber":"619-555-1234","email":"cody@garden52.codyi.mobi","address":"Cody St. San Diego, Ca 92117"});
-// const listing2 = new FoodListings({
-//     "datePosted": undefined,
-//     "dateAvailable": "11-12-2018",
-//     "itemDescription": "4 ears of corn",
-//     "quantity": "3",
-//     "pickupLocation": "Goodwill at Balboa and Clairemont Dr.",
-//     "selfPickup": "false",
-//     "curbsidePickup":"false",
-//     "comeToDoor": "false",
-//     "meetUpAtLocation": "true",
-//     "willDropOff": "true",
-//     "availableNow": "true",
-//     "listerContact": c2
-// });
-// const c3 = new Contact({"nameFirst":"Cody", "nameLast":"Cooker", "phoneNumber":"619-555-1234","email":"cody@garden52.codyi.mobi","address":"Cody St. San Diego, Ca 92117"});
-// const listing3 = new FoodListings({
-//     "datePosted": undefined,
-//     "dateAvailable": "12-12-2018",
-//     "itemDescription": "1 pint of cherry tomatoes",
-//     "quantity": "5",
-//     "pickupLocation": "My House",
-//     "selfPickup": "false",
-//     "curbsidePickup":"true",
-//     "comeToDoor": "false",
-//     "meetUpAtLocation": "false",
-//     "willDropOff": "false",
-//     "availableNow": "true",
-//     "listerContact": c3
-// });
-
-// const listingArray = [listing1,listing2,listing3];
-
-// FoodListings.insertMany(listingArray, err=> {
-//     console.log("Error inserting many: " + err);
-// });
+const { Contact } = require('../models/contact_model');
 
 //!Remove THIS
 router.get('/foodlistings/', function (req, res) {
@@ -75,12 +24,67 @@ router.get('/foodlistings/', function (req, res) {
 });
 
 
+//add new notification to bed
+router.post('/foodlistings/', jsonParser, (req, res) => {
+    const requiredFields =
+        ['datePosted',
+            'dateAvailable',
+            'itemDescription',
+            'quantity',
+            'pickupLocation',
+            'selfPickup',
+            'curbsidePickup',
+            'comeToDoor',
+            'meetUpAtLocation',
+            'willDropOff',
+            'availableNow'];
+    console.log("REQ BODY: " + JSON.stringify(req.body));
+    for (let i = 0; i < requiredFields.length; i++) {
+        const field = requiredFields[i];
+        if (!(field in req.body)) {
+            const message = `Missing \`${field}\` in request body`;
+            //console.error(message);
+            return res.status(400).send(message);
+        }
+    }
 
+    const listerContact = new Contact({ 
+        "nameFirst": req.body.listerContact.nameFirst, 
+        "nameLast": req.body.listerContact.nameLast, 
+        "phoneNumber": req.body.listerContact.phoneNumber, 
+        "email": req.body.listerContact.email, 
+        "address": req.body.listerContact.address });
 
+    const newListing = new FoodListings({
+        "datePosted": req.body.datePosted,
+        "dateAvailable": req.body.dateAvailable,
+        "itemDescription": req.body.itemDescription,
+        "quantity": req.body.quantity,
+        "pickupLocation": req.body.pickupLocation,
+        "selfPickup": req.body.selfPickup,
+        "curbsidePickup": req.body.curbsidePickup,
+        "comeToDoor": req.body.comeToDoor,
+        "meetUpAtLocation": req.body.meetUpAtLocation,
+        "willDropOff": req.body.willDropOff,
+        "availableNow": req.body.availableNow,
+        "listerContact": listerContact
+    });
+   console.log(`Adding foodlisting \`${JSON.stringify(req.body)}\``);
+    FoodListings.insertMany(newListing, { "returnOriginal": false },
+        function (error, success) {
+            if (error) {
+                //console.log("ERROR: " + error);
+                res.status(201).json(error);
+            } else if (success) {
+                //console.log("SUCCESS: " + success);
+                res.status(201).json(success);
+            } else {
+                res.status(201).json(success);
+            }
+        }
+    );
 
-
-
-
+});
 
 
 
