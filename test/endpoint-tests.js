@@ -1,5 +1,5 @@
 'use strict';
-const { TEST_DATABASE_URL } = require('../config');
+const { TEST_DATABASE_URL, PORT } = require('../config');
 const { app, closeServer, runServer } = require('../server');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
@@ -35,27 +35,24 @@ describe('test endpoints', function () {
                     expect(res.body).to.be.a('array');
                     expect(res.body.length).to.be.above(0);
                     res.body.forEach(position => {
-                        //position.forEach(nestedPosition => {
-                            expect(position).to.have.all.keys(
-                                '_id',
-                                'datePosted',
-                                'dateAvailable',
-                                'itemDescription',
-                                'quantity',
-                                'pickupLocation',
-                                'selfPickup',
-                                'curbsidePickup',
-                                'comeToDoor',
-                                'meetUpAtLocation',
-                                'willDropOff',
-                                'availableNow',
-                                'listerContact',
-                                '__v'
-                            );
-                        //});
+                        expect(position).to.have.all.keys(
+                            '_id',
+                            'datePosted',
+                            'dateAvailable',
+                            'itemDescription',
+                            'quantity',
+                            'pickupLocation',
+                            'selfPickup',
+                            'curbsidePickup',
+                            'comeToDoor',
+                            'meetUpAtLocation',
+                            'willDropOff',
+                            'availableNow',
+                            'listerContact',
+                            '__v'
+                        );
                     });
                 });
         });
-
     });
 });
