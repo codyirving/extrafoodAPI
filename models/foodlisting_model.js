@@ -9,6 +9,7 @@ const foodListingSchema = mongoose.Schema({
     quantity: { type: Number },
     pickupLocation: { type: String },
     selfPickup: { type: Boolean, default: false },
+    curbsidePickup: { type: Boolean, default: false},
     comeToDoor: { type: Boolean, default: false },
     meetUpAtLocation: { type: Boolean, default: false },
     willDropOff:{ type: Boolean, default: false },
