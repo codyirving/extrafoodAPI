@@ -109,12 +109,12 @@ router.delete("/foodlistings/:id", jsonParser, (req, res) => {
 });
 
 /* POST update to notification details */
-router.post("/foodlistings//claim/", jsonParser, (req, res) => {
+router.post("/foodlistings/claim/", jsonParser, (req, res) => {
   let found = false;
 
-  const requiredFields = ["_id", "dateClaimed"];
+  const requiredFields = ["_id", "claimedDate", "claimed"];
 
-  //console.log("req.body.keys: " + Object.keys(req.body));
+  console.log("req.body.keys: " + Object.keys(req.body));
   //check req.body for any of required keys
   const intersected = intersect(requiredFields, Object.keys(req.body));
 
@@ -132,6 +132,7 @@ router.post("/foodlistings//claim/", jsonParser, (req, res) => {
       const setString = field;
       //set the key value
       jsonSetObject[setString] = req.body[field];
+
       //console.log("JSONSETobject: " + JSON.stringify(jsonSetObject));
     }
   }
@@ -143,7 +144,7 @@ router.post("/foodlistings//claim/", jsonParser, (req, res) => {
   }
 
   FoodListings.findOneAndUpdate(
-    { _id: req.bod._id },
+    { _id: req.body._id },
     { $set: jsonSetObject },
     { returnNewDocument: true }
   )
