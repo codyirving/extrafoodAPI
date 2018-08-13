@@ -39,6 +39,8 @@ describe("test endpoints", function() {
               "datePosted",
               "dateAvailable",
               "dateExpires",
+              "claimed",
+              "claimedDate",
               "itemDescription",
               "quantity",
               "pickupLocation",

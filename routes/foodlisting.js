@@ -58,6 +58,8 @@ router.post("/foodlistings/", jsonParser, (req, res) => {
     datePosted: req.body.datePosted,
     dateAvailable: req.body.dateAvailable,
     dateExpires: req.body.dateExpires,
+    claimed: req.body.claimed,
+    claimedDate: req.body.claimDate,
     itemDescription: req.body.itemDescription,
     quantity: req.body.quantity,
     pickupLocation: req.body.pickupLocation,
@@ -104,6 +106,63 @@ router.delete("/foodlistings/:id", jsonParser, (req, res) => {
       }
     }
   );
+});
+
+/* POST update to notification details */
+router.post("/foodlistings//claim/", jsonParser, (req, res) => {
+  let found = false;
+
+  const requiredFields = ["_id", "dateClaimed"];
+
+  //console.log("req.body.keys: " + Object.keys(req.body));
+  //check req.body for any of required keys
+  const intersected = intersect(requiredFields, Object.keys(req.body));
+
+  //console.log("Intersected: " + intersected);
+
+  //MONGODB $set object
+  let jsonSetObject = {};
+  for (let i = 0; i < intersected.length; i++) {
+    const field = intersected[i];
+    //look for passed field to update
+    //console.log("if " + field + " in " + req.body);
+    if (field in req.body) {
+      //found at least one
+      found = true;
+      const setString = field;
+      //set the key value
+      jsonSetObject[setString] = req.body[field];
+      //console.log("JSONSETobject: " + JSON.stringify(jsonSetObject));
+    }
+  }
+  if (!found) {
+    //none!
+    const message = `Missing \`${requiredFields}\` in request body`;
+    //console.error(message);
+    return res.status(400).send(message);
+  }
+
+  FoodListings.findOneAndUpdate(
+    { _id: req.bod._id },
+    { $set: jsonSetObject },
+    { returnNewDocument: true }
+  )
+    .then(success => {
+      if (success) {
+        return res.status(201).json(success);
+      } else {
+        //console.log("failed " + success);
+        return res.status(200).json(error);
+      }
+    })
+    .catch(error => {
+      if (error) {
+        //console.log("ERROR: " + error);
+        return res.status(200).json(error);
+      }
+      //console.error(err);
+      res.status(500).json({ message: "Internal server error" });
+    });
 });
 
 function intersect(a, b) {
