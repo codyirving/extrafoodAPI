@@ -20,59 +20,56 @@ router.get("/foodlistings/", function(req, res) {
     });
 });
 
-//add new notification to bed
+//add new foodlisting
 router.post("/foodlistings/", jsonParser, (req, res) => {
   const requiredFields = [
-    "datePosted",
     "dateAvailable",
     "dateExpires",
     "itemDescription",
-    "quantity",
-    "pickupLocation",
     "selfPickup",
     "curbsidePickup",
     "comeToDoor",
     "meetUpAtLocation",
-    "willDropOff",
-    "availableNow"
+    "willDropOff"
   ];
   console.log("REQ BODY: " + JSON.stringify(req.body));
+
   for (let i = 0; i < requiredFields.length; i++) {
     const field = requiredFields[i];
     if (!(field in req.body)) {
       const message = `Missing \`${field}\` in request body`;
-      //console.error(message);
+      console.error(message);
       return res.status(400).send(message);
     }
   }
-
-  const listerContact = new Contact({
-    nameFirst: req.body.listerContact.nameFirst,
-    nameLast: req.body.listerContact.nameLast,
-    phoneNumber: req.body.listerContact.phoneNumber,
-    email: req.body.listerContact.email,
-    address: req.body.listerContact.address
-  });
-
-  const newListing = new FoodListings({
-    datePosted: req.body.datePosted,
-    dateAvailable: req.body.dateAvailable,
-    dateExpires: req.body.dateExpires,
-    claimed: req.body.claimed,
-    claimedDate: req.body.claimDate,
-    itemDescription: req.body.itemDescription,
-    quantity: req.body.quantity,
-    pickupLocation: req.body.pickupLocation,
-    selfPickup: req.body.selfPickup,
-    curbsidePickup: req.body.curbsidePickup,
-    comeToDoor: req.body.comeToDoor,
-    meetUpAtLocation: req.body.meetUpAtLocation,
-    willDropOff: req.body.willDropOff,
-    availableNow: req.body.availableNow,
-    listerContact: listerContact
-  });
+  // console.log("listerContact ");
+  // const listerContact = new Contact({
+  //   nameFirst: req.body.listerContact.nameFirst,
+  //   nameLast: req.body.listerContact.nameLast,
+  //   phoneNumber: req.body.listerContact.phoneNumber,
+  //   email: req.body.listerContact.email,
+  //   address: req.body.listerContact.address
+  // });
+  // console.log("foodlistings ");
+  // const newListing = new FoodListings({
+  //   datePosted: req.body.datePosted,
+  //   dateAvailable: req.body.dateAvailable,
+  //   dateExpires: req.body.dateExpires,
+  //   claimed: req.body.claimed,
+  //   claimedDate: req.body.claimDate,
+  //   itemDescription: req.body.itemDescription,
+  //   quantity: req.body.quantity,
+  //   pickupLocation: req.body.pickupLocation,
+  //   selfPickup: req.body.selfPickup,
+  //   curbsidePickup: req.body.curbsidePickup,
+  //   comeToDoor: req.body.comeToDoor,
+  //   meetUpAtLocation: req.body.meetUpAtLocation,
+  //   willDropOff: req.body.willDropOff,
+  //   availableNow: req.body.availableNow,
+  //   listerContact: listerContact
+  // });
   console.log(`Adding foodlisting \`${JSON.stringify(req.body)}\``);
-  FoodListings.insertMany(newListing, { returnOriginal: false }, function(
+  FoodListings.insertMany(req.body, { returnOriginal: false }, function(
     error,
     success
   ) {
@@ -114,7 +111,7 @@ router.post("/foodlistings/claim/", jsonParser, (req, res) => {
 
   const requiredFields = ["_id", "claimedDate", "claimed"];
 
-  console.log("req.body.keys: " + Object.keys(req.body));
+  //console.log("req.body.keys: " + Object.keys(req.body));
   //check req.body for any of required keys
   const intersected = intersect(requiredFields, Object.keys(req.body));
 
@@ -141,6 +138,22 @@ router.post("/foodlistings/claim/", jsonParser, (req, res) => {
     const message = `Missing \`${requiredFields}\` in request body`;
     //console.error(message);
     return res.status(400).send(message);
+  } else {
+    let jsonSetObjectCopy = Object.assign({}, jsonSetObject);
+
+    setTimeout(() => {
+      console.log("timeout succeeded: deleting");
+      jsonSetObjectCopy["claimed"] = false;
+      console.log("jsonsetobjectCopy: " + JSON.stringify(jsonSetObjectCopy));
+      console.log("timeout succeeded: deleting2");
+      FoodListings.findOneAndUpdate(
+        { _id: req.body._id },
+        { $set: jsonSetObjectCopy },
+        { returnNewDocument: true }
+      ).then(success => console.log("Claim expiring...update:" + success));
+    }, 60 * 1000 * 2); //auto expire claim in 2minutes for testing
+
+    console.log("setObject:" + jsonSetObject);
   }
 
   FoodListings.findOneAndUpdate(
@@ -161,7 +174,7 @@ router.post("/foodlistings/claim/", jsonParser, (req, res) => {
         //console.log("ERROR: " + error);
         return res.status(200).json(error);
       }
-      //console.error(err);
+      console.error("Error: " + error);
       res.status(500).json({ message: "Internal server error" });
     });
 });

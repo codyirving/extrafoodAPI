@@ -18,7 +18,8 @@ const foodListingSchema = mongoose.Schema({
   willDropOff: { type: Boolean, default: false },
   availableNow: { type: Boolean, default: false },
   photoURL: { type: String },
-  listerContact: Contact.prototype.schema
+  listerContact: Contact.prototype.schema,
+  listerExtraNotes: { type: String }
 });
 
 const FoodListings = mongoose.model("FoodListings", foodListingSchema);

@@ -3,11 +3,11 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-
+var jwt = require("express-jwt");
 var indexRouter = require("./routes");
 var usersRouter = require("./routes/users");
 const mongoose = require("mongoose");
-let { DATABASE_URL, PORT } = require("./config");
+let { DATABASE_URL, PORT, JWT_SECRET } = require("./config");
 
 let app = express();
 
@@ -22,16 +22,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+console.log("JWT SECRET: " + JWT_SECRET);
+var jwtCheck = jwt({
+  secret: JWT_SECRET,
+  audience: "extrafoodAPI.codyi.mobi",
+  issuer: "https://codyi.auth0.com/"
+});
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
+  res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
+  res.header("Expires", "-1");
+  res.header("Pragma", "no-cache");
   next();
 });
 
+// enforce on all endpoints
+app.use(jwtCheck);
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use(foodListingRouter);
@@ -67,6 +78,7 @@ function runServer(databaseUrl, port = PORT) {
         server = app
           .listen(port, () => {
             console.log(`Your app is listening on port ${port}`);
+
             resolve();
           })
           .on("error", err => {
