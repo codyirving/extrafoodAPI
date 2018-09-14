@@ -37,7 +37,7 @@ var jwtCheck = jwt({
     jwksRequestsPerMinute: 5,
     jwksUri: "https://codyi.auth0.com/.well-known/jwks.json"
   }),
-  audience: "extrafood.codyi.mobi",
+  audience: "extrafoodAPI.codyi.mobi",
   issuer: "https://codyi.auth0.com/",
   algorithms: ["RS256"]
 });
