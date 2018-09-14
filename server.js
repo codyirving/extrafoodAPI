@@ -1,5 +1,6 @@
 var createError = require("http-errors");
 var express = require("express");
+require("dotenv").config();
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
@@ -22,13 +23,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+const jwks = require("jwks-rsa");
 console.log("JWT SECRET: " + JWT_SECRET);
+// var jwtCheck = jwt({
+//   secret: JWT_SECRET,
+//   audience: "extrafoodAPI.codyi.mobi",
+//   issuer: "https://codyi.auth0.com/"
+// });
 var jwtCheck = jwt({
-  secret: JWT_SECRET,
-  audience: "extrafoodAPI.codyi.mobi",
-  issuer: "https://codyi.auth0.com/"
+  secret: jwks.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: "https://codyi.auth0.com/.well-known/jwks.json"
+  }),
+  audience: "extrafood.codyi.mobi",
+  issuer: "https://codyi.auth0.com/",
+  algorithms: ["RS256"]
 });
-
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
