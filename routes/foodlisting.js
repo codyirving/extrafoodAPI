@@ -1,13 +1,38 @@
 var express = require("express");
 var router = express.Router();
 var path = require("path");
-
+var nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
-
+const { EMAIL_LOGIN, EMAIL_PW } = require("../config");
 const { FoodListings } = require("../models/foodlisting_model");
 
 const { Contact } = require("../models/contact_model");
+
+function sendSuccessEmails(email) {
+  var transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: `${EMAIL_LOGIN}`,
+      pass: `${EMAIL_PW}`
+    }
+  });
+
+  var mailOptions = {
+    from: `${EMAIL_LOGIN}`,
+    to: `${email}`,
+    subject: "Claimed!",
+    text: "You claimed it"
+  };
+
+  transporter.sendMail(mailOptions, function(error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent: " + info.response);
+    }
+  });
+}
 
 //!Remove THIS
 router.get("/foodlistings/", function(req, res) {
@@ -109,7 +134,7 @@ router.delete("/foodlistings/:id", jsonParser, (req, res) => {
 router.post("/foodlistings/claim/", jsonParser, (req, res) => {
   let found = false;
 
-  const requiredFields = ["_id", "claimedDate", "claimed"];
+  const requiredFields = ["_id", "claimedDate", "claimed", "email"];
 
   //console.log("req.body.keys: " + Object.keys(req.body));
   //check req.body for any of required keys
@@ -163,6 +188,7 @@ router.post("/foodlistings/claim/", jsonParser, (req, res) => {
   )
     .then(success => {
       if (success) {
+        sendSuccessEmails(jsonSetObject.email);
         return res.status(201).json(success);
       } else {
         //console.log("failed " + success);
