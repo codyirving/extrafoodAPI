@@ -6,6 +6,7 @@ const foodListingSchema = mongoose.Schema({
   datePosted: { type: Date, required: true, default: Date.now },
   dateAvailable: { type: Date },
   dateExpires: { type: Date },
+  userEmail: { type: String },
   claimed: { type: Boolean, default: false },
   claimedDate: { type: Date },
   itemDescription: { type: String, required: true },

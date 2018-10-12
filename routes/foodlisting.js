@@ -9,7 +9,8 @@ const { FoodListings } = require("../models/foodlisting_model");
 
 const { Contact } = require("../models/contact_model");
 
-function sendSuccessEmails(email) {
+function sendSuccessEmails(email, response) {
+  console.log("Email: " + EMAIL_LOGIN + " pw " + EMAIL_PW + " TO " + email);
   var transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -17,12 +18,15 @@ function sendSuccessEmails(email) {
       pass: `${EMAIL_PW}`
     }
   });
-
+  let details = `Self Pickup: ${response.selfPickup ? "Yes" : "No"}
+  Item Description: ${response.itemDescription}
+  Extra Notes: ${response.listerExtraNotes}
+  Date Available: ${response.dateAvailable}`;
   var mailOptions = {
     from: `${EMAIL_LOGIN}`,
     to: `${email}`,
     subject: "Claimed!",
-    text: "You claimed it"
+    text: `You claimed it: \n${details}`
   };
 
   transporter.sendMail(mailOptions, function(error, info) {
@@ -50,6 +54,7 @@ router.post("/foodlistings/", jsonParser, (req, res) => {
   const requiredFields = [
     "dateAvailable",
     "dateExpires",
+    "userEmail",
     "itemDescription",
     "selfPickup",
     "curbsidePickup",
@@ -102,7 +107,7 @@ router.post("/foodlistings/", jsonParser, (req, res) => {
       //console.log("ERROR: " + error);
       res.status(201).json(error);
     } else if (success) {
-      //console.log("SUCCESS: " + success);
+      console.log("SUCCESS: " + success);
       res.status(201).json(success);
     } else {
       res.status(201).json(success);
@@ -136,7 +141,7 @@ router.post("/foodlistings/claim/", jsonParser, (req, res) => {
 
   const requiredFields = ["_id", "claimedDate", "claimed", "email"];
 
-  //console.log("req.body.keys: " + Object.keys(req.body));
+  console.log("req.body.keys: " + Object.keys(req.body));
   //check req.body for any of required keys
   const intersected = intersect(requiredFields, Object.keys(req.body));
 
@@ -178,7 +183,7 @@ router.post("/foodlistings/claim/", jsonParser, (req, res) => {
       ).then(success => console.log("Claim expiring...update:" + success));
     }, 60 * 1000 * 2); //auto expire claim in 2minutes for testing
 
-    console.log("setObject:" + jsonSetObject);
+    console.log("setObject:" + JSON.stringify(jsonSetObject));
   }
 
   FoodListings.findOneAndUpdate(
@@ -188,7 +193,7 @@ router.post("/foodlistings/claim/", jsonParser, (req, res) => {
   )
     .then(success => {
       if (success) {
-        sendSuccessEmails(jsonSetObject.email);
+        sendSuccessEmails(jsonSetObject.email, success);
         return res.status(201).json(success);
       } else {
         //console.log("failed " + success);
